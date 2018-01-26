@@ -1,0 +1,11 @@
+cabbage
+peach
+pear
+tomato
+berry
+lettuce
+onion
+apple
+carrot
+banana
+melon
