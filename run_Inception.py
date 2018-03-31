@@ -21,22 +21,22 @@ import sys
 import numpy
 import cv2
 import os, sys
-import KMeans_Watershed as KW
+import KMeans_Watershed_1 as KW
 import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # change this as you see fit
 image_path = sys.argv[1]
-dir = KW.main(image_path)
+subimages, number = KW.main(image_path)
 
 path_to_networks = './Inception-v3/'
-path_to_images = dir
+#path_to_images = dir
 graph_filename = 'graph'
 
-for file in os.listdir(dir):
-    print(file)
-    image_filename = dir+'/'+file
+for k in range(number):
+    print("Subimage %s"%k)
+    image=subimages[k]
 
     #mvnc.SetGlobalOption(mvnc.GlobalOption.LOGLEVEL, 2)
     devices = mvnc.EnumerateDevices()
@@ -71,7 +71,7 @@ for file in os.listdir(dir):
 
     graph = device.AllocateGraph(graphfile)
 
-    img = cv2.imread(image_filename).astype(numpy.float32)
+    img= image.astype(numpy.float32)
     dx,dy,dz= img.shape
     delta=float(abs(dy-dx))
     if dx > dy: #crop the x dimension
