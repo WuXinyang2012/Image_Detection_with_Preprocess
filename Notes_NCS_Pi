@@ -1,0 +1,3 @@
+NCS only supports API-only mode in Pi, so compilation should be done in another PC.
+
+install libusb-1.0-0-dev before make the NCS installation.
