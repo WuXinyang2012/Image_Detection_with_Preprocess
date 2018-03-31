@@ -22,7 +22,7 @@ import numpy
 import cv2
 import os, sys
 import KMeans_Watershed_1 as KW
-import tensorflow as tf
+#import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
