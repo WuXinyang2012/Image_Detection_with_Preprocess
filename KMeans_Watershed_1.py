@@ -123,7 +123,6 @@ def main(path):
         sub_image = reduced_inputImage[index[2]:index[3],index[0]:index[1]]
         sub_image = cv2.resize(sub_image, dsize=(200,200))
         sub_images.append(sub_image)
-        cv2.imshow('%s'%k,sub_image)
         k = k + 1
 
     print("[INFO] {} unique segments found".format(k))
