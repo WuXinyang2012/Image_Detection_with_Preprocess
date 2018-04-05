@@ -17,12 +17,10 @@
 # approved by Intel in writing.
 
 from mvnc import mvncapi as mvnc
-import sys
 import numpy
 import cv2
 import os, sys
 import KMeans_Watershed_1 as KW
-#import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -34,42 +32,46 @@ path_to_networks = './Inception-v3/'
 #path_to_images = dir
 graph_filename = 'graph'
 
+# mvnc.SetGlobalOption(mvnc.GlobalOption.LOGLEVEL, 2)
+devices = mvnc.EnumerateDevices()
+if len(devices) == 0:
+    print('No devices found')
+    quit()
+
+device = mvnc.Device(devices[0])
+device.OpenDevice()
+
+# Load graph
+with open(path_to_networks + graph_filename, mode='rb') as f:
+    graphfile = f.read()
+
+# Load preprocessing data
+mean = 128
+std = 1 / 128
+
+# Load categories
+categories = []
+with open(path_to_networks + 'categories.txt', 'r') as f:
+    for line in f:
+        cat = line.split('\n')[0]
+        if cat != 'classes':
+            categories.append(cat)
+    f.close()
+    print('Number of categories:', len(categories))
+
+# Load image size
+'''
+with open(path_to_networks + 'inputsize.txt', 'r') as f:
+    reqsize = int(f.readline().split('\n')[0])
+'''
+reqsize = 299
+
+graph = device.AllocateGraph(graphfile)
+
 for k in range(number):
     print("Subimage %s"%k)
     image=subimages[k]
 
-    #mvnc.SetGlobalOption(mvnc.GlobalOption.LOGLEVEL, 2)
-    devices = mvnc.EnumerateDevices()
-    if len(devices) == 0:
-        print('No devices found')
-        quit()
-
-    device = mvnc.Device(devices[0])
-    device.OpenDevice()
-
-    #Load graph
-    with open(path_to_networks + graph_filename, mode='rb') as f:
-        graphfile = f.read()
-
-    #Load preprocessing data
-    mean = 128
-    std = 1/128
-
-    #Load categories
-    categories = []
-    with open(path_to_networks + 'categories.txt', 'r') as f:
-        for line in f:
-            cat = line.split('\n')[0]
-            if cat != 'classes':
-                categories.append(cat)
-        f.close()
-        print('Number of categories:', len(categories))
-
-    #Load image size
-    with open(path_to_networks + 'inputsize.txt', 'r') as f:
-        reqsize = int(f.readline().split('\n')[0])
-
-    graph = device.AllocateGraph(graphfile)
 
     img= image.astype(numpy.float32)
     dx,dy,dz= img.shape
@@ -98,6 +100,7 @@ for k in range(number):
         print(top_inds[i], categories[top_inds[i]], output[top_inds[i]])
 
     print(''.join(['*' for i in range(79)]))
-    graph.DeallocateGraph()
-    device.CloseDevice()
-    print('Finished')
+
+graph.DeallocateGraph()
+device.CloseDevice()
+print('Finished')
