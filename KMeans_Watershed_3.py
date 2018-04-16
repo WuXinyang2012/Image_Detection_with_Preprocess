@@ -33,8 +33,6 @@ def main(path):
     #print(path)
     inputImage = cv2.imread(path)
     reduced_inputImage = cv2.resize(inputImage, (0,0), fx=0.4, fy=0.4, interpolation=cv2.INTER_AREA)
-    #cv2.imshow('reduced',reduced_inputImage)
-    #shifted = reduced_inputImage
     shifted = cv2.pyrMeanShiftFiltering(reduced_inputImage, 20, 50)
     #cv2.imshow('test',shifted)
     m, n = shifted.shape[:2]
@@ -72,19 +70,28 @@ def main(path):
     #closed = cv2.morphologyEx(shifted_tmp, cv2.MORPH_CLOSE, kernel)
     #cv2.imshow("Close",closed);
     opened = cv2.morphologyEx(new_pic, cv2.MORPH_OPEN, kernel)
-    #cv2.imshow("Open", opened);
+    cv2.imshow("Open", opened);
 
+    # sure background area
+    sure_bg = cv2.dilate(opened, kernel, iterations=3)
+    # Finding sure foreground area
+    dist_transform = cv2.distanceTransform(opened, cv2.DIST_L2, 5)
+    ret, sure_fg = cv2.threshold(dist_transform, 0.7 * dist_transform.max(), 255, 0)
+    # Finding unknown region
+    sure_fg = np.uint8(sure_fg)
+    unknown = cv2.subtract(sure_bg, sure_fg)
 
-    D = ndimage.distance_transform_edt(opened)
-    localMax = peak_local_max(D, indices=False, min_distance=20,
-        labels=opened)
+    # Marker labelling
+    ret, markers = cv2.connectedComponents(sure_fg)
+    # Add one to all labels so that sure background is not 0, but 1
+    markers = markers + 1
+    # Now, mark the region of unknown with zero
+    markers[unknown == 255] = 0
 
-    markers = ndimage.label(localMax, structure=np.ones((3, 3)))[0]
-    labels = watershed(-D, markers, mask=opened)
 
     k = 0
     sub_images = []
-    for label in np.unique(labels):
+    for label in markers:
         # if the label is zero, we are examining the 'background'
         # so simply ignore it
         if label == 0:
@@ -93,8 +100,7 @@ def main(path):
         # otherwise, allocate memory for the label region and draw
         # it on the mask
         mask = np.zeros(new_pic.shape, dtype="uint8")
-        mask[labels == label] = 255
-        #cv2.imshow('mask',mask)
+        mask[markers == label] = 255
 
         # detect contours in the mask and grab the largest one
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
@@ -123,7 +129,6 @@ def main(path):
         sub_image = reduced_inputImage[index[2]:index[3],index[0]:index[1]]
         sub_image = cv2.resize(sub_image, dsize=(200,200))
         sub_images.append(sub_image)
-        #cv2.imshow('out%s'%k, sub_image)
         k = k + 1
 
     print("[INFO] {} unique segments found".format(k))

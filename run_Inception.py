@@ -26,7 +26,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # change this as you see fit
 image_path = sys.argv[1]
-subimages, number = KW.main(image_path)
+#subimages, number = KW.main(image_path)
+subimages = cv2.imread(image_path)
+number = 1
 
 path_to_networks = './Inception-v3/'
 #path_to_images = dir
@@ -70,22 +72,12 @@ graph = device.AllocateGraph(graphfile)
 
 for k in range(number):
     print("Subimage %s"%k)
-    image=subimages[k]
+    image=subimages
+    img = image
 
-
-    img= image.astype(numpy.float32)
-    dx,dy,dz= img.shape
-    delta=float(abs(dy-dx))
-    if dx > dy: #crop the x dimension
-        img=img[int(0.5*delta):dx-int(0.5*delta),0:dy]
-    else:
-        img=img[0:dx,int(0.5*delta):dy-int(0.5*delta)]
     img = cv2.resize(img, (reqsize, reqsize))
 
-    img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-
-    for i in range(3):
-        img[:,:,i] = (img[:,:,i] - mean) * std
+    cv2.imshow('%s' % k, img)
 
     print('Start download to NCS...')
     graph.LoadTensor(img.astype(numpy.float16), 'user object')

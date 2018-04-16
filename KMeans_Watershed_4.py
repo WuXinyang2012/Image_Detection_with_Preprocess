@@ -4,39 +4,14 @@ from sklearn.cluster import KMeans
 from skimage.feature import peak_local_max
 from skimage.morphology import watershed
 from scipy import ndimage
-'''
-def mkdir(path):
-    # delete space 
-    path=path.strip()
-    # delete possible "\\" symbols
-    path=path.rstrip("\\")
- 
-    isExists=os.path.exists(path)
-    if not isExists:
-        print(path+' successfully made.')
-        os.makedirs(path)
-        return True
-    else:
-        print(path+' already exists.')
-        return False
-
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-    help="path to input image")
-args = vars(ap.parse_args())
-'''
 
 def main(path):
-    # load the image and perform pyramid mean shift filtering
-    # to aid the thresholding step
-    #print(path)
+
     inputImage = cv2.imread(path)
     reduced_inputImage = cv2.resize(inputImage, (0,0), fx=0.4, fy=0.4, interpolation=cv2.INTER_AREA)
     #cv2.imshow('reduced',reduced_inputImage)
-    #shifted = reduced_inputImage
-    shifted = cv2.pyrMeanShiftFiltering(reduced_inputImage, 20, 50)
-    #cv2.imshow('test',shifted)
+    shifted = cv2.Meanshift(reduced_inputImage, (9,9), 0)
+    cv2.imshow('test',shifted)
     m, n = shifted.shape[:2]
     #shifted = inputImage.copy()
     #cv2.imshow("MS",shifted)
@@ -123,7 +98,7 @@ def main(path):
         sub_image = reduced_inputImage[index[2]:index[3],index[0]:index[1]]
         sub_image = cv2.resize(sub_image, dsize=(200,200))
         sub_images.append(sub_image)
-        #cv2.imshow('out%s'%k, sub_image)
+        cv2.imshow('%s'%k,sub_image)
         k = k + 1
 
     print("[INFO] {} unique segments found".format(k))
